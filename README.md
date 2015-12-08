@@ -19,6 +19,6 @@ Compile them into corresponding class files bin/associationRuleMiner/*.class
 
 run
 
-cd bin
-java associationRuleMiner/LeMain ../clusteringBv.txt
+	cd bin
+	java associationRuleMiner/LeMain ../clusteringBv.txt
 
