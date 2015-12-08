@@ -1,7 +1,7 @@
 # FixrAssociationRuleMining
 ## Author
 
-Primary Author is Sriram S <srirams{at}gmail{dotcom}>
+Primary Author is Sriram S (srirams{at}gmail{dotcom})
 
 ## Brief Description
 
