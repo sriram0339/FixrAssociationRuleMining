@@ -3,20 +3,21 @@ package associationRuleMiner;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class FINodes {
-	List<RepoData> allObjs; 
+	
 	TreeSet<Integer> allIdx;
 	TreeSet<Integer> relObjs;
 	TreeMap<Integer, TreeSet<Integer> > idx2ObjIDs;
 	TreeSet<Integer> mySet;
 	public int myID;
 	List<FINodes> children;
-
+	FrequentItemSetDB fItemDB;
 	
-	public FINodes(List<RepoData> rList,  // All the RepoData objects
+	public FINodes( FrequentItemSetDB f,
 			TreeSet<Integer> allIndices,  // Collection of all indices
 			TreeSet<Integer> objSet,
 			TreeMap<Integer, TreeSet<Integer>> idxMap,  // Map from each integer index to a set of object ids
@@ -24,16 +25,17 @@ public class FINodes {
 			int j) {
 
 		myID = j;
+		fItemDB = f;
 		if (mSet != null)
 			mySet = new TreeSet<Integer>(mSet);
 		else 
 			mySet = new TreeSet<Integer>();
 		mySet.add(j);
-		allObjs=rList;
 		relObjs  =objSet;
 		allIdx = allIndices;
 		idx2ObjIDs = idxMap;
 		children = null;
+		
 
 	}
 
@@ -41,8 +43,10 @@ public class FINodes {
 		// Consider each child node j < myID
 		// Compute the frequency of occurrences of mySet U { j }
 		//  If it is beyond cutoff, create a new node.
+	 //   System.out.println("Adding children Size: "+ allIdx.size());
 		Iterator<Integer> it = allIdx.descendingIterator();
 		children = new ArrayList<FINodes>();
+		TreeSet<Integer> siblingIndices = new TreeSet<Integer> ();
 		while (it.hasNext()){
 			int j = it.next();
 			if ( j < myID){
@@ -53,8 +57,9 @@ public class FINodes {
 				if (mIdx == null) continue;
 				relIdx.retainAll(mIdx);
 				if (relIdx.size() >= cutoff ){
-					FINodes newChild = new FINodes(allObjs,allIdx,relIdx,idx2ObjIDs,mySet,j);
+					FINodes newChild = new FINodes(fItemDB,siblingIndices,relIdx,idx2ObjIDs,mySet,j);
 					children.add(newChild);
+					siblingIndices.add(j);
 				}
 			}
 		}
@@ -68,8 +73,20 @@ public class FINodes {
 		}
 	}
 	
+	private  String featureSetToString(Set<Integer> mSet){
+		String ret = "{ ";
+		for(int i:mSet){
+			String fName = fItemDB.getFeatureName(i);
+			ret = ret + fName + ", ";
+		}
+		ret = ret + "}";
+		return ret;
+	}
+	
 	void printFrequentItemSets(){
-		System.out.println("Set: "+mySet.toString()+"\t\t Frequency: "+relObjs.size()+"\n");
+		
+		System.out.println("Set: "+ featureSetToString(this.mySet) +"\t\t Frequency: "+relObjs.size()+"\n");
+		
 		if (children != null){
 			for(FINodes n: children){
 				n.printFrequentItemSets();
@@ -94,7 +111,7 @@ public class FINodes {
 
 	private void printAssociationRule(TreeSet<Integer> ant, int j, double r){
 		System.out.println("Association Rule with strength: "+ r);
-		System.out.println(ant.toString() + "===>" + j);
+		System.out.println(featureSetToString(ant) + "===>" + fItemDB.getFeatureName(j));
 		System.out.println("----------------");
 	}
 	

@@ -8,16 +8,16 @@ import java.util.TreeSet;
 
 public class FrequentItemSetDB {
 	List<RepoData> rList;
+	String [] featureNames;
 	List<FINodes> topLevel;
 	
-	public FrequentItemSetDB(List<RepoData> h){
+	public FrequentItemSetDB(List<RepoData> h, String [] fNames){
 		rList= h;
 		topLevel = new ArrayList<FINodes>();
+		featureNames = fNames;
 	}
 
-	public void buildFrequentItemSets(double alpha){
-		int n = rList.size();
-		int cutoffLength= (int) ( alpha * (double) n); 
+	public void buildFrequentItemSets(int cutoffLength){
 		TreeSet<Integer> allIndices = new TreeSet<Integer>(); 
 		TreeMap<Integer, TreeSet<Integer> > idxMap = new TreeMap<Integer, TreeSet<Integer> > ();
 		for (RepoData r: rList){
@@ -25,17 +25,23 @@ public class FrequentItemSetDB {
 		}
 		
 		Iterator<Integer> vi = allIndices.descendingIterator();
+		TreeSet<Integer> frequentIndices = new TreeSet<Integer>();
 		while (vi.hasNext()){
 			int j = vi.next();
 			TreeSet<Integer> lj = idxMap.get(j);
 			assert(lj != null);
 			if (lj.size() >= cutoffLength){
-				FINodes rj = new FINodes(rList, allIndices, lj, idxMap,null, j);
+				FINodes rj = new FINodes(this, frequentIndices, lj, idxMap,null, j);
+				frequentIndices.add(j);
+				//System.out.println("Frequent Feature:" + getFeatureName(j));
 				topLevel.add(rj);
-				rj.addChildrenNodesRecursive(cutoffLength);
-				rj.printFrequentItemSets();
 			}
-		}	
+			
+		}
+		for (FINodes rj:topLevel){
+			rj.addChildrenNodesRecursive(cutoffLength);
+			rj.printFrequentItemSets();
+		}
 	}
 	
 	public int obtainFrequencyForSet (TreeSet<Integer> qry){
@@ -76,6 +82,14 @@ public class FrequentItemSetDB {
 		for (FINodes n: topLevel){
 			n.mineAssociationRules(this, beta);
 		}
+	}
+	
+	public String getFeatureName( int i){
+		assert( i >= 0);
+		if (i < featureNames.length){
+			return featureNames[i] +"("+i+")";
+		}
+		return ("UNKNOWN_FEATURE ("+i +")");
 	}
 	
 }
