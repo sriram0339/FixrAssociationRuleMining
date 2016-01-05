@@ -3,6 +3,7 @@ package associationRuleMiner;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -10,11 +11,13 @@ public class FrequentItemSetDB {
 	List<RepoData> rList;
 	String [] featureNames;
 	List<FINodes> topLevel;
+	List<AssociationRule> associationRuleList;
 	
 	public FrequentItemSetDB(List<RepoData> h, String [] fNames){
 		rList= h;
 		topLevel = new ArrayList<FINodes>();
 		featureNames = fNames;
+		associationRuleList = new ArrayList<AssociationRule>();
 	}
 
 	public void buildFrequentItemSets(int cutoffLength){
@@ -44,7 +47,7 @@ public class FrequentItemSetDB {
 		}
 	}
 	
-	public int obtainFrequencyForSet (TreeSet<Integer> qry){
+	public Set<Integer> obtainFrequencyForSet (TreeSet<Integer> qry){
 		// Return 0 if query is not a frequent item set
 
 		FINodes curNode = null;
@@ -57,12 +60,11 @@ public class FrequentItemSetDB {
 				curNode = curNode.findChildByID(j);
 			}
 			if (curNode == null){
-				return 0;
+				return null;
 			}
 		}
 		assert(curNode != null);
-		int freq = curNode.itemSetFrequency();
-		return freq;
+		return curNode.relObjs;
 	}
 	
 	private FINodes findRootNodeForID(int j) {
@@ -73,14 +75,14 @@ public class FrequentItemSetDB {
 		return null;
 	}
 
-	public void obtainAssociationRulesFromFrequentItemSets( double beta){
+	public void obtainAssociationRulesFromFrequentItemSets( double beta, CommitDateRanges cdr){
 		/* Walk all the nodes in the frequent item tree.
 		 * For each node n with 2 or more indices in it's set.
 		 *   Compute the ratio of frequency of node / frequency of antecedent set
 		 *   If ratio is more than beta ==> output association rule.
 		 */
 		for (FINodes n: topLevel){
-			n.mineAssociationRules(this, beta);
+			n.mineAssociationRules(this, beta, cdr);
 		}
 	}
 	
@@ -90,6 +92,27 @@ public class FrequentItemSetDB {
 			return featureNames[i] +"("+i+")";
 		}
 		return ("UNKNOWN_FEATURE ("+i +")");
+	}
+
+	public void pushAssociationRule(AssociationRule aRule) {
+		associationRuleList.add(aRule);
+		
+	}
+	
+	public void printAllAssociationRules(){
+		for (AssociationRule a:associationRuleList){
+			System.out.println(a.toString());
+			System.out.println("------");
+			a.displayTimeSignature();
+			System.out.println("------");
+		}
+		System.out.println(associationRuleList.size()+" rules printed.");
+	}
+
+	public RepoData getRepoDataFromID(int l) {
+		// TODO Auto-generated method stub
+		assert( l >= 0 && l < rList.size());
+		return rList.get(l);
 	}
 	
 }

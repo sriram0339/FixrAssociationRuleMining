@@ -27,7 +27,7 @@ public class ReadJSONFileData {
 	 *   Read the lines from the input JSON Formatted File.
 	 *   TODO: Modify this as @SergioMover changes the format
 	 */
-	public void readFileLines(BufferedReader in){
+	public void readFileLines(BufferedReader in, CommitDateRanges cdr){
 		try{
 			String line;
 			String fPattern="\"(.*)\":(.*),?$";
@@ -47,8 +47,14 @@ public class ReadJSONFileData {
 					if (m.find()){
 						String key = m.group(1);
 						String val = m.group(2);
+						val=val.trim();
 						int len = val.length();
-						val = val.substring(1,len-1); // Strip first and last characters
+						//System.out.println("<<"+val+">>");
+						if (val == "[]"){
+							val = "";
+						} else {
+							val = val.substring(1,len-1); // Strip first and last characters
+						}
 						// Java >= 7.0 will match strings appropriately using String.equals method 
 						switch (key){
 						case "repo":
@@ -68,7 +74,11 @@ public class ReadJSONFileData {
 							curData.setIndicesString(val);
 							break;
 						case "values":
+							
 							curData.setValuesString(val);
+							break;
+						case "commit_date":
+							curData.setCommitDate(val,cdr);
 							break;
 						default:
 							System.out.println("Fatal: unknown key "+key);
@@ -122,13 +132,13 @@ public class ReadJSONFileData {
 	 * Function: Constructor<ReadJSONFileData>
 	 *   Constructor function
 	 */
-	public ReadJSONFileData(String fName){
+	public ReadJSONFileData(String fName, CommitDateRanges cdr){
 		try {
 			this.fileName = fName;
 			this.h=new ArrayList<RepoData>();
 			// Open the file into a buffered reader
 			BufferedReader in = new BufferedReader( new FileReader(fName));
-			readFileLines(in); // Read all the lines
+			readFileLines(in,cdr); // Read all the lines
 		} catch (FileNotFoundException e) {
 			// Trouble?
 			System.out.println("Fatal: could not find file: "+ fName);

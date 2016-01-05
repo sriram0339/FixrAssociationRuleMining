@@ -1,6 +1,10 @@
 package associationRuleMiner;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
@@ -13,16 +17,22 @@ public class RepoData {
 	public String childHash;
 	public String parentHash;
 	public String name;
+	public String commitDate;
 	public List<Integer> indices;
 	public List<Boolean> values;
+	public long commitTimeMilliSecondsEpoch;
+	public int binID;
+	
 	public RepoData(int myId){
 		this.id = myId;
 		repo="";
 		childHash="";
 		parentHash="";
 		name="";
+		commitDate="";
 		indices=new ArrayList<Integer>(0);
 		values=new ArrayList<Boolean>(0);
+		binID=-1;
 	}
 	public void setRepo(String val) {
 		this.repo = val;
@@ -68,6 +78,8 @@ public class RepoData {
 			if (s.equals("1.0") || s.equals("1")){
 				values.add(true);
 			} else {
+				System.out.println(">>> "+ s + "<<<"+ val + ">>"+ repo + "<<"+ name + "<<<"+parentHash);
+				
 				assert(false); // For the time being let us not permit this
 				values.add(false);
 			}
@@ -105,5 +117,25 @@ public class RepoData {
 			mj.add(this.id);
 			m.put(j, mj);
 		}
+	}
+	public void setCommitDate(String val, CommitDateRanges cdr) {
+		this.commitDate = val;
+		try {
+			DateFormat formatter = new SimpleDateFormat("MM/dd/yy");
+			Date df = formatter.parse(val);
+			this.commitTimeMilliSecondsEpoch = df.getTime();
+			this.binID=cdr.addCommitToBin(this.commitTimeMilliSecondsEpoch);
+			
+		//DEBUG MSG:	System.out.println("Commit Date " + val + " Epoch Time: "+ this.commitTimeMilliSecondsEpoch);
+		} catch(ParseException e){
+			System.out.println("Badly formatted date "+val+" in object "+ this.name);
+		}
+	}
+	
+	public long getTime(){
+		return this.commitTimeMilliSecondsEpoch;
+	}
+	public int getCommitBinID(){
+		return binID;
 	}
 }

@@ -85,7 +85,7 @@ public class FINodes {
 	
 	void printFrequentItemSets(){
 		
-		System.out.println("Set: "+ featureSetToString(this.mySet) +"\t\t Frequency: "+relObjs.size()+"\n");
+		//System.out.println("Set: "+ featureSetToString(this.mySet) +"\t\t Frequency: "+relObjs.size()+"\n");
 		
 		if (children != null){
 			for(FINodes n: children){
@@ -115,7 +115,7 @@ public class FINodes {
 		System.out.println("----------------");
 	}
 	
-    public void mineAssociationRules(FrequentItemSetDB fItemDB, double beta) {
+    public void mineAssociationRules(FrequentItemSetDB fItemDB, double beta, CommitDateRanges cdr) {
 		int k = mySet.size();
 		if ( k >= 2){
 			// Consider association rules for this node.
@@ -123,17 +123,25 @@ public class FINodes {
 			for (int j: mySet){
 				TreeSet<Integer> tmp = new TreeSet<Integer>(mySet);
 				tmp.remove(j);
-				int antecedentFreq = fItemDB.obtainFrequencyForSet(tmp);
+				Set<Integer> antecedentMatchingRepoObjIDs = fItemDB.obtainFrequencyForSet(tmp);
+				int antecedentFreq = antecedentMatchingRepoObjIDs.size();
 				assert(antecedentFreq > 0);
 				double r = (double) freq / (double) antecedentFreq;
 				if (r >= beta){
-					printAssociationRule(tmp,j,r);
+					//printAssociationRule(tmp,j,r);
+					AssociationRule aRule = new AssociationRule(tmp, j, r, fItemDB);
+					fItemDB.pushAssociationRule(aRule);
+					aRule.setDateRanges(cdr);
+					for (int l:antecedentMatchingRepoObjIDs){
+						RepoData rdata = fItemDB.getRepoDataFromID(l);
+						aRule.evaluateRuleAgainstRepoData(rdata);
+					}
 				}
 			}
 		}
 		if (children != null){
 			for (FINodes n:children)
-				n.mineAssociationRules(fItemDB, beta);
+				n.mineAssociationRules(fItemDB, beta,cdr);
 		}
 	}
 }
