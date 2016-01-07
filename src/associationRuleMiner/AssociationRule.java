@@ -116,6 +116,7 @@ public class AssociationRule {
 		fStream.format("<h1> %s </h1>\n", toString());
 		fStream.println("<div style=\"width: 50%\"> <canvas id=\"myCanvas\" height=\"450\" width=\"600\"> </canvas></div>");
 	} 
+	
 	public void printChartDataObject(PrintWriter fStream){
 		fStream.println("<script>");
 		fStream.println("var barChartData = { \n");
