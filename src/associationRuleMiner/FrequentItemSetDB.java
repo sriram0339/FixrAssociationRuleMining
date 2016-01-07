@@ -89,7 +89,13 @@ public class FrequentItemSetDB {
 			n.mineAssociationRules(this, beta, cdr);
 		}
 	}
-	
+	public String getFeatureNameNoID(int i){
+		assert(i >= 0);
+		if (i < featureNames.length){
+			return featureNames[i];
+		}
+		return "UNKNOWN_FEATURE_ERR";
+	}
 	public String getFeatureName( int i){
 		assert( i >= 0);
 		if (i < featureNames.length){

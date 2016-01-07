@@ -1,16 +1,37 @@
 package associationRuleMiner;
 
 import java.util.Date;
+
+import org.json.JSONArray;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 public class CommitDateRanges {
-	//Class: CommitDateRanges
-	// Splits a range of dates into equally sized bins to help histogram the number of commits of a particular type 
-	// for each date range.
+	/**
+	 * Class: CommitDateRanges
+	 * <p>
+	 * Splits a range of dates into equally sized bins to help histogram the number of commits of a particular type 
+	 * for each date range.
+	 * 
+	 * @author Sriram Sankaranarayanan
+	 * @since 2016-01-01
+	 */
 	
-	Date firstDate; // This is the first date in the range
+	/**
+	 * Field: firstDate
+	 * The first date.
+	 */
+	Date firstDate; 
+	/** 
+	 * Field: lastDate
+	 * The last date
+	 */
 	Date lastDate; // This is the last date
+	/**
+	 * Field: nBins
+	 * The number of bins.
+	 */
 	int nBins; // Number of bins required
 	
 	long [] dateRanges; // An array of long integers of size nBins,
@@ -112,6 +133,18 @@ public class CommitDateRanges {
 		}
 		str = str + delim + "\"> "+getBinDate(nBins-1)+"\"";
 		return str;
+	}
+
+	public JSONArray getDateLabelsJSON() {
+		JSONArray a = new JSONArray();
+		int i = 0;
+		String str = "\"< "+getBinDate(i)+"\"";
+		a.put(str);
+		for (i=1; i < nBins-1;++i){
+			a.put("\""+getBinDate(i)+"\"");
+		}
+		a.put("\"> "+getBinDate(nBins-1)+"\"");
+		return a;
 	}
 	
 	

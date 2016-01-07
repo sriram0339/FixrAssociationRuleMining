@@ -2,11 +2,17 @@ package associationRuleMiner;
 
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +52,8 @@ public class AssociationRule {
 		ruleStrength = strength;
 		fItemDB = fidb;
 		ruleID = numRules++;
-		validMatches = new ArrayList();
-		violations = new ArrayList();
+		validMatches = new ArrayList<RepoData>();
+		violations = new ArrayList<RepoData>();
 		dRanges=null;
 		validMatchesOverTime=null;
 		violationsOverTime = null;
@@ -195,6 +201,44 @@ public class AssociationRule {
 		}
 		fStream.println("</tbody></table>");
 		
+	}
+
+	public JSONObject dumpJSONObject() throws JSONException {
+		JSONObject obj = new JSONObject();
+		obj.put("ruleID", this.ruleID);
+		JSONArray antArray = new JSONArray();
+		for(int i: antecedentIDs){
+			antArray.put(fItemDB.getFeatureNameNoID(i));
+		}
+		obj.put("antecedents", antArray);
+		obj.put("consequent",fItemDB.getFeatureNameNoID(consequenceID));
+		obj.put("ruleStrength", ruleStrength);
+		JSONArray matchingRepoIDs = new JSONArray();
+		for (RepoData r: validMatches){
+			matchingRepoIDs.put(r.id);
+		}
+		obj.put("matchingRepoIDs", matchingRepoIDs);
+		JSONArray vRepoIDs = new JSONArray();
+		for (RepoData r: violations){
+			vRepoIDs.put(r.id);
+		}
+		obj.put("violatingRepoIDs", vRepoIDs);
+		JSONArray dLabels = dRanges.getDateLabelsJSON();
+		obj.put("dateLabels", dLabels);
+		JSONArray matchesOverTime = this.getMatchesOverTimeJSON();
+		obj.put("matchesOverTime", matchesOverTime);
+		
+		return obj;
+	}
+
+	private JSONArray getMatchesOverTimeJSON() throws JSONException {
+		JSONArray a = new JSONArray();
+		int n = dRanges.getNumBins();
+		for(int i=0; i < n; ++i){
+			double fr = (double) validMatchesOverTime[i]/(double) dRanges.getNumCommitsForRange(i);
+			a.put(fr);
+		}
+		return a;
 	}
 	
 	

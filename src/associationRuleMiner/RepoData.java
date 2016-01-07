@@ -11,6 +11,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RepoData {
 	public int id;
 	public String repo;
@@ -18,6 +21,7 @@ public class RepoData {
 	public String parentHash;
 	public String name;
 	public String commitDate;
+	public Date formattedDate;
 	public List<Integer> indices;
 	public List<Boolean> values;
 	public long commitTimeMilliSecondsEpoch;
@@ -126,8 +130,8 @@ public class RepoData {
 		this.commitDate = val;
 		try {
 			DateFormat formatter = new SimpleDateFormat(AlgoParameters.dateFormatInJSON);
-			Date df = formatter.parse(val);
-			this.commitTimeMilliSecondsEpoch = df.getTime();
+			formattedDate = formatter.parse(val);
+			this.commitTimeMilliSecondsEpoch = formattedDate.getTime();
 			this.binID=cdr.addCommitToBin(this.commitTimeMilliSecondsEpoch);
 			
 		//DEBUG MSG:	System.out.println("Commit Date " + val + " Epoch Time: "+ this.commitTimeMilliSecondsEpoch);
@@ -148,5 +152,27 @@ public class RepoData {
 		str = str + this.name + "(" + this.childHash +")";
 		str = str + "</a> </td></tr>\n";
 		return str;
+	}
+	
+	public JSONObject dumpJSON(){
+		JSONObject rValue = new JSONObject();
+		try {
+			rValue.put("id",id );
+			rValue.put("repoName", this.repo);
+			rValue.put("childHash", this.childHash);
+			rValue.put("name", this.name);
+			rValue.put("commitDate", commitDate);
+			return rValue;
+		} catch (JSONException e){
+			System.out.println("Fatal: JSON exeception");
+			e.printStackTrace();
+			System.exit(1);
+		} catch (IllegalArgumentException e){
+			System.err.println("Date Formatting failed:" + commitDate);
+			e.printStackTrace();
+		}
+		// Should never reach here.
+		assert(false);
+		return null;
 	}
 }

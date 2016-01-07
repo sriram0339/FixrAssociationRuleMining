@@ -14,12 +14,14 @@ public class AlgoParameters {
 	public static double associationRuleStrengthCutoff=0.9;
 	
 	public static String startDate = "01/01/10";
-	public static String endDate = "07/01/2015";
+	public static String endDate = "07/01/15";
 	public static int nBins = 24;
 	public static String chartJSPath="Chart.js";
 	public static String fileStem = "rule_";
-	public static boolean addedRemovedFeatures = true;
-	public static String dateFormatInJSON="yyyy-MM-dd kk:mm:ss Z";
+	public static boolean addedRemovedFeatures = false;
+	public static String dateFormatInJSON=  "MM/dd/yy"; //"yyyy-MM-dd kk:mm:ss Z";
 
 	public static boolean ignoreZeroFeature = true;
+
+	public static String jsonFileName = "allData.json";
 }
