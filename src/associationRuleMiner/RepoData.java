@@ -32,7 +32,7 @@ public class RepoData {
 		commitDate="";
 		indices=new ArrayList<Integer>(0);
 		values=new ArrayList<Boolean>(0);
-		binID=-1;
+		binID=0;
 	}
 	public void setRepo(String val) {
 		this.repo = val;
@@ -63,7 +63,11 @@ public class RepoData {
 		String [] inds = p.split(val);
 		for(String s: inds){
 			int i = Integer.parseInt(s);
-			indices.add(i);
+			if (AlgoParameters.ignoreZeroFeature && i <= 1){
+				//System.err.println("Ignored feature # "+i);
+			} else {
+				indices.add(i);
+			}
 		}
 	}
 	
@@ -121,7 +125,7 @@ public class RepoData {
 	public void setCommitDate(String val, CommitDateRanges cdr) {
 		this.commitDate = val;
 		try {
-			DateFormat formatter = new SimpleDateFormat("MM/dd/yy");
+			DateFormat formatter = new SimpleDateFormat(AlgoParameters.dateFormatInJSON);
 			Date df = formatter.parse(val);
 			this.commitTimeMilliSecondsEpoch = df.getTime();
 			this.binID=cdr.addCommitToBin(this.commitTimeMilliSecondsEpoch);
@@ -137,5 +141,12 @@ public class RepoData {
 	}
 	public int getCommitBinID(){
 		return binID;
+	}
+	
+	public String getCommitURL(){
+		String str = "<tr><td> <a href = \" http://github.com/"+this.repo+"/commit/"+this.childHash + "\", target=\"_new\">";
+		str = str + this.name + "(" + this.childHash +")";
+		str = str + "</a> </td></tr>\n";
+		return str;
 	}
 }

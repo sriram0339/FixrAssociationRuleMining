@@ -38,6 +38,7 @@ public class LeMain {
 			fItems.buildFrequentItemSets(AlgoParameters.frequentItemSetFreqCutoff);
 			fItems.obtainAssociationRulesFromFrequentItemSets(AlgoParameters.associationRuleStrengthCutoff,cdr);
 			fItems.printAllAssociationRules();
+			fItems.htmlDumpAllRules(AlgoParameters.fileStem);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

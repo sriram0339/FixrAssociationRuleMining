@@ -1,5 +1,9 @@
 package associationRuleMiner;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -98,7 +102,22 @@ public class FrequentItemSetDB {
 		associationRuleList.add(aRule);
 		
 	}
-	
+	public void htmlDumpAllRules(String fStem){
+		 try {
+			PrintWriter fStream = new PrintWriter("index.html", "UTF-8");
+			fStream.println("<html>\n <head>\n  <title> Association Rules Mined </title>\n </head> \n <body>");
+			for (AssociationRule a: associationRuleList){
+				String s = a.toString();
+				fStream.format("<p> Rule # %d: <a href=\"%s%d.html\"> %s </a> \n", a.ruleID, fStem,a.ruleID,s);
+				a.htmlPrintRuleWithChart(fStem);
+			}
+			fStream.println("</body>\n</html>");
+			fStream.close();
+		 }catch (IOException e){
+			 e.printStackTrace();
+			 System.exit(1);
+		 }
+	}
 	public void printAllAssociationRules(){
 		for (AssociationRule a:associationRuleList){
 			System.out.println(a.toString());

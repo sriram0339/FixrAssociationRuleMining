@@ -69,6 +69,17 @@ public class CommitDateRanges {
 		assert(i >= 0 && i < nBins );
 		return numCommitsInRange[i];
 	}
+
+	public String getDateLabels() {
+		String delim=", ";
+		int i = 0;
+		String str = "\"< "+getBinDate(i)+"\"";
+		for (i=1; i < nBins-1;++i){
+			str = str + delim + "\""+getBinDate(i)+"\"";
+		}
+		str = str + delim + "\"> "+getBinDate(nBins-1)+"\"";
+		return str;
+	}
 	
 	
 }

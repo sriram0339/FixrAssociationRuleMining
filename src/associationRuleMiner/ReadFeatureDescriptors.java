@@ -23,6 +23,13 @@ public class ReadFeatureDescriptors {
 			assert(l2.charAt(0) == '[' && l2.charAt(n-1) ==']');
 			String line = l2.substring(1,n-1);
 			featureNames = line.split(",");
+			if (AlgoParameters.addedRemovedFeatures)
+				for (int i =0 ; i < featureNames.length; ++i){
+					if (i %2 == 0)
+						featureNames[i]="+"+featureNames[i];
+					else
+						featureNames[i]="-"+featureNames[i];
+				}
 			System.out.println("Number of features extracted: " + (featureNames.length));
 			in.close();
 		} catch (FileNotFoundException e){

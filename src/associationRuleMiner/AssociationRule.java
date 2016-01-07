@@ -5,6 +5,7 @@ import java.util.TreeSet;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
 // It makes things like computing the time signature of a rule easier.
 
 public class AssociationRule {
+	
 	Set<Integer> antecedentIDs;
 	int consequenceID;
 	double ruleStrength;
@@ -54,14 +56,16 @@ public class AssociationRule {
 	
 	public String toString(){
 		String str="";
-		String str1 = String.format("Association Rule ID: %d with strength %f \n", ruleID, ruleStrength);
-		String str2 = "{ ";
+		String str1 = String.format("Rule ID: %d  (strength %.2f) \n", ruleID, ruleStrength);
+		String str2 = "( ";
+		String delim = "";
 		for(int i:antecedentIDs){
 			String fName = fItemDB.getFeatureName(i);
-			str2 = str2 + fName + ", ";
+			str2 = str2 + delim + fName ;
+			delim = ", ";
 		}
-		str2 = str2 + "} ";
-		str2 = str2 + " ===> " + fItemDB.getFeatureName(consequenceID) + "\n";
+		str2 = str2 + ") ";
+		str2 = str2 + " => " + fItemDB.getFeatureName(consequenceID) + "\n";
 		str = str1 + str2;
 		return str;
 	}
@@ -107,23 +111,90 @@ public class AssociationRule {
 		}
 	}
 	
-	public void htmlPrintRuleWithChart(String fileStem) throws IOException{
-		BufferedWriter out = null;
+	public void printHeaderInfo(PrintWriter fStream){
+		fStream.format("<html> \n <head> \n <title> Association Rule # %d </title> \n <script src=\"%s\"></script> \n </head>\n <body>\n",this.ruleID, AlgoParameters.chartJSPath);
+		fStream.format("<h1> %s </h1>\n", toString());
+		fStream.println("<div style=\"width: 50%\"> <canvas id=\"myCanvas\" height=\"450\" width=\"600\"> </canvas></div>");
+	} 
+	public void printChartDataObject(PrintWriter fStream){
+		fStream.println("<script>");
+		fStream.println("var barChartData = { \n");
+		String dateRangeLabels= dRanges.getDateLabels();
+		fStream.format("\t labels: [%s], \n",dateRangeLabels);
+		fStream.println("\t datasets : [ ");
+		fStream.println("\t\t{");
+		fStream.println("\t\t\t label : \"percentage of matching comits\", " );
+		fStream.println( "\t\t\t fillColor : \"rgba(220,100,120,0.8)\", \n"+
+				"\t\t\t strokeColor : \"rgba(220,220,220,0.8)\", \n"+
+				"\t\t\t highlightFill: \"rgba(220,220,220,0.75)\",\n"+
+				"\t\t\t highlightStroke: \"rgba(220,220,220,1)\",\n"
+				);
+		String dataString = getDataAsString();
+		fStream.format("\t data: [ %s ] \n", dataString);
+		fStream.println("\t\t }");
+		fStream.println("\t\t ]");
+		fStream.println("}\n");
+		fStream.println("window.onload = function(){ \n "+
+			"var ctx = document.getElementById(\"myCanvas\").getContext(\"2d\"); \n"+
+			"window.myBar = new Chart(ctx).Bar(barChartData, { \n"+
+			"	responsive : true\n" +
+			"});  \n } \n");
+		fStream.println("</script>");
+		
+	}
+	private String getDataAsString() {
+		int n = dRanges.getNumBins();
+		String delim="";
+		String retStr = "";
+		for(int i=0; i < n; ++i){
+			double fr = (double) validMatchesOverTime[i]/(double) dRanges.getNumCommitsForRange(i);
+			retStr = retStr + delim + "\""+ (100*fr) +"\"";
+			delim = ", ";
+		}
+		return retStr;
+	}
+
+	public void printTailInfo(PrintWriter fStream){
+		fStream.println("</body>\n </html>");
+	}
+	
+	public void printMatchesData(PrintWriter fStream){
+		fStream.println("<h2> Valid Matches to Association Rules </h2>");
+		fStream.println("<table> \n <tbody> \n ");
+		for (RepoData r: validMatches){
+			String s = r.getCommitURL();
+			fStream.println(s);
+		}
+		fStream.println("</tbody></table>");
+	}
+	public void htmlPrintRuleWithChart(String fileStem) {
 		try  
 		{
-		    FileWriter fstream = new FileWriter(fileStem+ruleID+".html", false); //true tells to append data.
-		    out = new BufferedWriter(fstream);
-		    
+		    PrintWriter fstream = new PrintWriter(fileStem+ruleID+".html", "UTF-8"); //true tells to append data.
+		    printHeaderInfo(fstream);
+		    printChartDataObject(fstream);
+		    printViolationData(fstream);
+		    printMatchesData(fstream);
+		    printTailInfo(fstream);
+		    fstream.close();
 		}
 		catch (IOException e)
 		{
 		    System.err.println("Error: " + e.getMessage());
 		}
-		finally
-		{
-		    if(out != null) {
-		        out.close();
-		    }
-		}
+		
 	}
+
+	private void printViolationData(PrintWriter fStream) {
+		fStream.println("<h2> Violations to Association Rule </h2>");
+		fStream.println("<table> \n <tbody> \n ");
+		for (RepoData r: violations){
+			String s = r.getCommitURL();
+			fStream.println(s);
+		}
+		fStream.println("</tbody></table>");
+		
+	}
+	
+	
 }
