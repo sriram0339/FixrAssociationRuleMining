@@ -3,5 +3,19 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/Users/macuser/Projects/git/FixrAssociationRuleMining/lib/java-json.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-3d-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-jai-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-visualization-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-algorithms-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-graph-impl-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/jung-api-2.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/j3d-core-1.3.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/vecmath-1.3.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/wstx-asl-3.2.6.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/stax-api-1.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/colt-1.2.0.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/concurrent-1.3.4.jar"/>
+	<classpathentry kind="lib" path="/Users/macuser/tools/jung-library/collections-generic-4.01.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

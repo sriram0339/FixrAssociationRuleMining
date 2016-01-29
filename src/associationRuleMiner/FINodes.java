@@ -57,14 +57,26 @@ public class FINodes {
 				if (mIdx == null) continue;
 				relIdx.retainAll(mIdx);
 				if (relIdx.size() >= cutoff ){
-					FINodes newChild = new FINodes(fItemDB,siblingIndices,relIdx,idx2ObjIDs,mySet,j);
-					children.add(newChild);
-					siblingIndices.add(j);
+					int uniqRepositoriesCount = countUniqueRepositories(relIdx);
+					if (uniqRepositoriesCount >= AlgoParameters.nUniqueRepositoriesCutoff){
+						FINodes newChild = new FINodes(fItemDB,siblingIndices,relIdx,idx2ObjIDs,mySet,j);
+						children.add(newChild);
+						siblingIndices.add(j);
+					}
 				}
 			}
 		}
 	}
 	
+	private int countUniqueRepositories(TreeSet<Integer> relIdx) {
+		Set<String> repoNames = new TreeSet<String>();
+		for (int i: relIdx){
+			RepoData r = fItemDB.getRepoDataFromID(i);
+			repoNames.add(r.repo);
+		}
+		return repoNames.size();
+	}
+
 	void addChildrenNodesRecursive(int cutoff){
 		addChildrenNodes(cutoff);
 		assert(children != null);

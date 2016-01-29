@@ -19,13 +19,14 @@ import java.util.Map;
 // This is a class that represents an association rule object
 // It makes things like computing the time signature of a rule easier.
 
-public class AssociationRule {
+public class AssociationRule implements Comparable<AssociationRule>{
 	
 	Set<Integer> antecedentIDs;
 	int consequenceID;
 	double ruleStrength;
 	FrequentItemSetDB fItemDB;
 	int ruleID;
+	int clusterID;
 	static int numRules =0;
 	// Repo objects
 	List<RepoData> validMatches;
@@ -34,6 +35,7 @@ public class AssociationRule {
 	CommitDateRanges dRanges;
     int [] validMatchesOverTime; // Map from date range ID to count of number of matches
 	int [] violationsOverTime; // Map from date range ID to count of number of matches
+	boolean [] isTrending;
 	
 	public void setDateRanges(CommitDateRanges d){
 		assert(dRanges == null && validMatchesOverTime== null && violationsOverTime==null);
@@ -41,8 +43,10 @@ public class AssociationRule {
 		int n = dRanges.getNumBins();
 		this.validMatchesOverTime = new int[n];
 		this.violationsOverTime= new int[n];
+		this.isTrending = new boolean[n];
 		for (int i = 0; i < n; ++i){
 			this.validMatchesOverTime[i] = this.violationsOverTime[i]=0;
+			isTrending[i]=false;
 		}
 	}
 	
@@ -58,6 +62,7 @@ public class AssociationRule {
 		validMatchesOverTime=null;
 		violationsOverTime = null;
 		dRanges=null;
+		isTrending=null;
 	}
 	
 	public String toString(){
@@ -166,7 +171,7 @@ public class AssociationRule {
 	}
 	
 	public void printMatchesData(PrintWriter fStream){
-		fStream.println("<h2> Valid Matches to Association Rules </h2>");
+		fStream.format("<h2> Valid Matches to Association Rules (%d) </h2>",validMatches.size());
 		fStream.println("<table> \n <tbody> \n ");
 		for (RepoData r: validMatches){
 			String s = r.getCommitURL();
@@ -180,8 +185,8 @@ public class AssociationRule {
 		    PrintWriter fstream = new PrintWriter(fileStem+ruleID+".html", "UTF-8"); //true tells to append data.
 		    printHeaderInfo(fstream);
 		    printChartDataObject(fstream);
-		    printViolationData(fstream);
 		    printMatchesData(fstream);
+		    printViolationData(fstream);
 		    printTailInfo(fstream);
 		    fstream.close();
 		}
@@ -193,7 +198,7 @@ public class AssociationRule {
 	}
 
 	private void printViolationData(PrintWriter fStream) {
-		fStream.println("<h2> Violations to Association Rule </h2>");
+		fStream.format("<h2> Violations to Association Rule (%d) </h2>",violations.size());
 		fStream.println("<table> \n <tbody> \n ");
 		for (RepoData r: violations){
 			String s = r.getCommitURL();
@@ -227,7 +232,7 @@ public class AssociationRule {
 		obj.put("dateLabels", dLabels);
 		JSONArray matchesOverTime = this.getMatchesOverTimeJSON();
 		obj.put("matchesOverTime", matchesOverTime);
-		
+		obj.put("isTrending", this.isTrending);
 		return obj;
 	}
 
@@ -239,6 +244,82 @@ public class AssociationRule {
 			a.put(fr);
 		}
 		return a;
+	}
+	
+	public boolean isTrendingRule() {
+		// Need a criterion for whether something is trending
+		// Compute the mean and standard deviation of first n-2 bins.
+		// Check if any of the last two bins have values at least 2 standard deviations above the mean.
+		//  If so yes, otherwise no.
+		int n = dRanges.getNumBins();
+		boolean overallTrend = false;
+		double [] fr = new double[n];
+		double meanValue=0.0;
+		double sdev = 0.0;
+		double nItems=0;
+		for(int i=0; i < n; ++i){
+			fr[i] = (double) validMatchesOverTime[i]/(double) dRanges.getNumCommitsForRange(i);
+			if (i > 0 && i < n -2 ){
+				meanValue = meanValue + fr[i];
+				sdev = sdev + fr[i]*fr[i];
+				nItems = nItems +1;
+			}
+		}
+		assert(nItems > 0);
+		meanValue = meanValue / (double) nItems;
+		sdev = Math.sqrt(sdev/nItems - meanValue * meanValue);
+		for (int j=1; j < n; ++j){
+			if (fr[j] >= meanValue + AlgoParameters.nSigmasForTrending * sdev ){
+				isTrending[j]=true;
+				if ( j > 1)
+					overallTrend = true;
+			}
+		}
+		return overallTrend;
+	}
+
+	public int numViolations() {
+		return violations.size();
+	}
+	
+	public int numMatches(){
+		return validMatches.size();
+		
+	}
+
+	public boolean isFeatureIDInvolved(int j){
+		return (j == this.consequenceID ) || (this.antecedentIDs.contains(j));
+				
+	}
+	public boolean intersectsFrequentItemSet(AssociationRule a2) {
+		if (a2.isFeatureIDInvolved(this.consequenceID)){
+			return true;
+		}
+		
+		for (int i: this.antecedentIDs){
+			if (a2.isFeatureIDInvolved(i))
+				return true;
+		}
+		
+		return false;
+	}
+
+	@Override
+	public int compareTo(AssociationRule o) {
+		if (o.clusterID != this.clusterID)
+			return (o.clusterID < this.clusterID)?1:-1;
+		else {
+			if (o.numMatches() != this.numMatches())
+				return (o.numMatches() > this.numMatches()) ? 1: -1;
+			
+			if (o.numViolations() != this.numViolations())
+				return (o.numViolations() > this.numViolations())? 1:-1;
+			
+			if (o.ruleID > this.ruleID)
+				return (o.ruleID > this.ruleID)? 1:-1;
+		}
+		
+		return 0;
 	}
 	
 	

@@ -30,15 +30,17 @@ public class ReadJSONFileData {
 	public void readFileLines(BufferedReader in, CommitDateRanges cdr){
 		try{
 			String line;
-			String fPattern="\"(.*)\":(.*),?$";
+			String fPattern="\"(.*)\":(.*)$";
 			Pattern r = Pattern.compile(fPattern);
 			RepoData curData=null;
+			int count = 1;
 			while ( (line = in.readLine()) != null){
 				line = line.trim();
 				int llen = line.length();
 				assert(line.charAt(0) == '{' && line.charAt(llen-1)=='}');
 				line = line.substring(1,llen-1);
-				curData = new RepoData(h.size());
+				curData = new RepoData(count);
+				count ++;
 				List<String> lFields = this.extractFieldsFromLine(line);
 				
 				for (String s: lFields){
@@ -73,6 +75,9 @@ public class ReadJSONFileData {
 							// System.out.println(val);
 							curData.setIndicesString(val);
 							break;
+						case "contexts":
+							curData.parseContexts(val);
+							break;
 						case "values":
 							
 							curData.setValuesString(val);
@@ -86,7 +91,10 @@ public class ReadJSONFileData {
 						}
 					}
 				}
-				h.add(curData);
+				// Do not bother adding repo data without indices.
+				if (curData.numIndices() > 0){
+					curData.splitRepoDataByContextAndAdd(h);
+				}
 			}			
 			in.close();
 		} catch (IOException e){
@@ -99,14 +107,14 @@ public class ReadJSONFileData {
 	
 	private List<String> extractFieldsFromLine(String line) {
 		int n = line.length();
-		boolean insideAList = false;
+		int nListNests = 0;
 		List<String> retVal = new ArrayList<String>();
 		int curStart = 0;
 		for(int i = 0; i < n; ++i){
 			char c = line.charAt(i);
 			switch (c){
 			case ',':
-				if (!insideAList){
+				if (nListNests == 0){
 					String t = line.substring(curStart,i);
 					retVal.add(t);
 					//System.out.println(t);
@@ -114,12 +122,11 @@ public class ReadJSONFileData {
 				}
 				break;
 			case '[':
-				insideAList=true;
+				nListNests++;
 				break;
 			case ']':
-				insideAList=false;
+				nListNests--;
 				break;
-				
 			}
 			
 		}

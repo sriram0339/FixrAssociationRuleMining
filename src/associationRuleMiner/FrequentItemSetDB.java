@@ -108,13 +108,37 @@ public class FrequentItemSetDB {
 		associationRuleList.add(aRule);
 		
 	}
-	public void htmlDumpAllRules(String fStem){
+	public void htmlDumpAllRules(String fStem, List<Integer> clusterBoundaries){
 		 try {
+			//int curCluster = 0;
+			//int curClusterBoundary = clusterBoundaries.get(curCluster);
 			PrintWriter fStream = new PrintWriter("index.html", "UTF-8");
 			fStream.println("<html>\n <head>\n  <title> Association Rules Mined </title>\n </head> \n <body>");
+			fStream.println("<table><tbody>");
+			int curCluster = 0;
+			//int count = 0;
 			for (AssociationRule a: associationRuleList){
+//				if (count > curClusterBoundary){
+//					
+//					curCluster++;
+//					if (curCluster < clusterBoundaries.size()){
+//						curClusterBoundary = clusterBoundaries.get(curCluster);
+//					} else {
+//						curClusterBoundary = associationRuleList.size() +1;
+//					}
+//				}
+//				count ++;
+				if (a.clusterID != curCluster){
+					fStream.println("<tr></tr> <tr><td> <h3> Begin New Cluster </h3> </tr><tr></tr> ");
+					curCluster = a.clusterID;
+				}
+				boolean trendingRule = a.isTrendingRule();
 				String s = a.toString();
-				fStream.format("<p> Rule # %d: <a href=\"%s%d.html\"> %s </a> \n", a.ruleID, fStem,a.ruleID,s);
+				fStream.format("<tr> <td> %d <td> Rule # %d: <td> (Matches: %d) <td> (Violations: %d) <td> <a href=\"%s%d.html\"> %s </a> \n", a.clusterID, a.ruleID, a.numMatches(), a.numViolations(), fStem,a.ruleID,s);
+				if (trendingRule){
+					fStream.println("<font color=\"red\" style=\"large\"> &nbsp; &nbsp; TimeTrending </font>");
+				}
+				fStream.println("</tr>");
 				a.htmlPrintRuleWithChart(fStem);
 			}
 			fStream.println("</body>\n</html>");
@@ -135,7 +159,6 @@ public class FrequentItemSetDB {
 	}
 
 	public RepoData getRepoDataFromID(int l) {
-		// TODO Auto-generated method stub
 		assert( l >= 0 && l < rList.size());
 		return rList.get(l);
 	}
